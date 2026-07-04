@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#ffe8ef" />
+  <title>双人小局</title>
+  <style>
+    :root {
+      --bg1: #fff6f8;
+      --bg2: #f7fbff;
+      --card: rgba(255,255,255,.86);
+      --text: #2b2b35;
+      --muted: #6f7280;
+      --primary: #ff7892;
+      --primary2: #7cc7ff;
+      --accent: #ffd36e;
+      --good: #69c779;
+      --shadow: 0 20px 60px rgba(60, 70, 90, .16);
+      --radius: 24px;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; min-height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; color: var(--text); }
+    body {
+      background:
+        radial-gradient(circle at 15% 8%, rgba(255, 120, 146, .25), transparent 28%),
+        radial-gradient(circle at 88% 20%, rgba(124, 199, 255, .26), transparent 30%),
+        radial-gradient(circle at 70% 92%, rgba(255, 211, 110, .30), transparent 28%),
+        linear-gradient(145deg, var(--bg1), var(--bg2));
+      overflow-x: hidden;
+    }
+    .wrap { width: min(960px, 100%); margin: 0 auto; padding: 22px 16px 34px; }
+    .hero {
+      position: relative;
+      padding: 24px 20px 18px;
+      border-radius: 30px;
+      background: rgba(255,255,255,.66);
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255,255,255,.8);
+      overflow: hidden;
+    }
+    .hero:before, .hero:after {
+      content: ""; position: absolute; width: 120px; height: 120px; border-radius: 50%; filter: blur(4px); opacity: .38;
+    }
+    .hero:before { right: -40px; top: -40px; background: var(--primary); }
+    .hero:after { left: -46px; bottom: -56px; background: var(--primary2); }
+    .hero-inner { position: relative; z-index: 1; }
+    .tag { display: inline-flex; align-items: center; gap: 6px; padding: 7px 11px; border-radius: 999px; background: rgba(255,255,255,.72); color: var(--muted); font-size: 13px; }
+    h1 { margin: 14px 0 8px; font-size: clamp(32px, 9vw, 58px); line-height: 1; letter-spacing: -.04em; }
+    .subtitle { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.65; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; margin-top: 18px; }
+    .mode {
+      border: 0; border-radius: var(--radius); padding: 18px 14px; text-align: left;
+      background: var(--card); color: var(--text); box-shadow: 0 10px 25px rgba(40,50,80,.09); min-height: 118px;
+      touch-action: manipulation;
+    }
+    .mode:active, .btn:active, .chip:active { transform: scale(.985); }
+    .emoji { font-size: 30px; display: block; margin-bottom: 8px; }
+    .mode strong { display: block; font-size: 18px; margin-bottom: 6px; }
+    .mode span { display: block; color: var(--muted); font-size: 13px; line-height: 1.45; }
+    .panel { display: none; margin-top: 18px; border-radius: 30px; background: var(--card); box-shadow: var(--shadow); border: 1px solid rgba(255,255,255,.76); overflow: hidden; }
+    .panel.active { display: block; animation: pop .22s ease-out; }
+    @keyframes pop { from { opacity: 0; transform: translateY(10px) scale(.99); } to { opacity: 1; transform: none; } }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 16px 0; }
+    .back { border: 0; background: rgba(255,255,255,.75); color: var(--muted); border-radius: 999px; padding: 10px 14px; font-weight: 700; }
+    .score { color: var(--muted); font-size: 13px; }
+    .card { margin: 16px; padding: 22px 18px; min-height: 220px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border-radius: 28px; background: linear-gradient(180deg, rgba(255,255,255,.95), rgba(255,255,255,.72)); border: 1px solid rgba(255,255,255,.82); }
+    .card .small { color: var(--muted); font-size: 14px; margin-bottom: 10px; }
+    .card .big { font-size: clamp(24px, 7vw, 38px); line-height: 1.32; font-weight: 850; letter-spacing: -.02em; }
+    .card .note { margin-top: 14px; color: var(--muted); font-size: 14px; line-height: 1.55; }
+    .actions { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; padding: 0 16px 16px; }
+    .btn { border: 0; border-radius: 18px; padding: 15px 12px; font-size: 16px; font-weight: 800; color: #fff; background: linear-gradient(135deg, var(--primary), #ff9fb0); box-shadow: 0 10px 22px rgba(255,120,146,.25); touch-action: manipulation; }
+    .btn.secondary { color: var(--text); background: rgba(255,255,255,.82); box-shadow: 0 10px 22px rgba(60,70,90,.08); }
+    .btn.blue { background: linear-gradient(135deg, var(--primary2), #95d7ff); box-shadow: 0 10px 22px rgba(124,199,255,.25); }
+    .btn.yellow { color: #5b4300; background: linear-gradient(135deg, var(--accent), #ffe39a); box-shadow: 0 10px 22px rgba(255,211,110,.25); }
+    .row { display:flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content:center; margin-top: 14px; }
+    .chip { border: 0; padding: 11px 14px; border-radius: 999px; background: rgba(255,255,255,.86); color: var(--text); font-weight: 800; box-shadow: 0 8px 18px rgba(60,70,90,.08); }
+    .input { width: min(360px, 100%); border: 2px solid rgba(255,120,146,.24); border-radius: 18px; padding: 14px 14px; font-size: 18px; text-align: center; outline: none; background: rgba(255,255,255,.88); }
+    .hidden { display:none !important; }
+    .meter { width: 100%; height: 13px; background: rgba(60,70,90,.10); border-radius: 999px; overflow: hidden; margin-top: 14px; }
+    .bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--primary), var(--primary2)); transition: width .22s ease; }
+    .tap-zone { width: min(360px, 100%); height: 210px; border-radius: 30px; border: 2px dashed rgba(255,120,146,.46); background: rgba(255,255,255,.68); display:flex; align-items:center; justify-content:center; font-size: 26px; font-weight: 900; user-select:none; }
+    .toast { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%) translateY(20px); padding: 12px 16px; border-radius: 999px; background: rgba(43,43,53,.88); color:#fff; font-weight: 800; opacity: 0; pointer-events: none; transition: .2s; z-index: 99; max-width: calc(100% - 28px); text-align:center; }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .footer { color: var(--muted); text-align:center; margin: 18px 8px 0; font-size: 13px; line-height: 1.6; }
+    @media (max-width: 560px) {
+      .grid { grid-template-columns: 1fr; }
+      .actions { grid-template-columns: 1fr; }
+      .hero { padding: 22px 16px 16px; }
+      .mode { min-height: 104px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section id="home" class="hero">
+      <div class="hero-inner">
+        <div class="tag">✨ 两个人 · 轻松玩 · 不费脑</div>
+        <h1>双人小局</h1>
+        <p class="subtitle">适合两个人面对面玩的小互动。规则很简单：抽到什么就照着做，可以跳过，不尴尬也不无聊。</p>
+        <div class="grid">
+          <button class="mode" data-open="draw"><span class="emoji">🎴</span><strong>抽卡小局</strong><span>真心话、小挑战、轻松任务随机来一张。</span></button>
+          <button class="mode" data-open="match"><span class="emoji">🤝</span><strong>默契问答</strong><span>各自心里选答案，再一起揭晓。</span></button>
+          <button class="mode" data-open="sync"><span class="emoji">⚡</span><strong>同频反应</strong><span>倒计时后同时点击，看看差多少毫秒。</span></button>
+          <button class="mode" data-open="wheel"><span class="emoji">🎡</span><strong>小目标转盘</strong><span>抽一个今天就能完成的小目标。</span></button>
+        </div>
+      </div>
+    </section>
+
+    <section id="draw" class="panel">
+      <div class="panel-head"><button class="back">← 返回</button><div class="score">可随时换一张</div></div>
+      <div class="card"><div class="small" id="drawType">抽卡小局</div><div class="big" id="drawText">点击下面按钮开始</div><div class="note" id="drawNote">建议轮流抽，抽到后认真完成 30 秒。</div></div>
+      <div class="actions"><button class="btn" id="drawBtn">抽一张</button><button class="btn secondary" id="skipBtn">换轻松一点</button></div>
+    </section>
+
+    <section id="match" class="panel">
+      <div class="panel-head"><button class="back">← 返回</button><div class="score" id="matchScore">默契值 0</div></div>
+      <div class="card">
+        <div class="small">默契问答</div>
+        <div class="big" id="matchQuestion">点击开始，先不要说出自己的答案</div>
+        <div class="note" id="matchHint">两个人在心里选 A 或 B，然后同时伸手指/说答案。</div>
+        <div class="row" id="matchChoices"></div>
+      </div>
+      <div class="actions"><button class="btn blue" id="matchNext">下一题</button><button class="btn secondary" id="matchGood">答对了 +1</button></div>
+    </section>
+
+    <section id="sync" class="panel">
+      <div class="panel-head"><button class="back">← 返回</button><div class="score" id="bestSync">最佳：暂无</div></div>
+      <div class="card">
+        <div class="small">同频反应</div>
+        <div class="big" id="syncTitle">准备好后，把手机放在两人中间</div>
+        <div class="note" id="syncNote">开始后会随机倒计时。看到“点！”时，两个人轮流快速点击下方区域。</div>
+        <div class="row"><div class="tap-zone" id="tapZone">开始</div></div>
+        <div class="meter"><div class="bar" id="syncBar"></div></div>
+      </div>
+      <div class="actions"><button class="btn" id="syncStart">开始一局</button><button class="btn secondary" id="syncReset">重置</button></div>
+    </section>
+
+    <section id="wheel" class="panel">
+      <div class="panel-head"><button class="back">← 返回</button><div class="score">完成一个就很棒</div></div>
+      <div class="card"><div class="small">小目标转盘</div><div class="big" id="wheelText">点击转一下</div><div class="note" id="wheelNote">都是低难度、当天能完成的小目标。</div></div>
+      <div class="actions"><button class="btn yellow" id="wheelBtn">转一下</button><button class="btn secondary" id="wheelDone">完成了</button></div>
+    </section>
+
+    <p class="footer">提示：不想回答可以直接跳过。玩法不是考试，开心最重要。</p>
+  </main>
+  <div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  const $ = (s) => document.querySelector(s);
+  const $$ = (s) => Array.from(document.querySelectorAll(s));
+  const home = $('#home');
+  const panels = $$('.panel');
+  const toast = $('#toast');
+  function say(t){ toast.textContent=t; toast.classList.add('show'); clearTimeout(window.__toast); window.__toast=setTimeout(()=>toast.classList.remove('show'),1500); }
+  function openPanel(id){ home.style.display='none'; panels.forEach(p=>p.classList.toggle('active', p.id===id)); window.scrollTo({top:0, behavior:'smooth'}); }
+  function goHome(){ panels.forEach(p=>p.classList.remove('active')); home.style.display='block'; window.scrollTo({top:0, behavior:'smooth'}); }
+  $$('.mode').forEach(b=>b.addEventListener('click',()=>openPanel(b.dataset.open)));
+  $$('.back').forEach(b=>b.addEventListener('click',goHome));
+  function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+  const drawCards = [
+    ['真心话','说一个你最近偷偷开心过的小瞬间。','听的人只许认真听，不许打断。'],
+    ['真心话','说一个你希望对方多做一点的小事。','用“我会很开心，如果……”开头。'],
+    ['真心话','你第一次觉得对方很特别，是因为什么？','尽量说具体画面。'],
+    ['真心话','最近有没有一句话想说但一直没说？','可以说轻松的，也可以认真一点。'],
+    ['真心话','如果今天可以重来一个小时，你想和对方做什么？','不用现实，想象也可以。'],
+    ['真心话','说一个你觉得对方很可爱的习惯。','越具体越好。'],
+    ['小挑战','用 10 秒给对方起一个今天限定外号。','对方觉得不好听可以重来一次。'],
+    ['小挑战','两个人同时比一个动作，不能商量。','一样就击掌，不一样就笑一下。'],
+    ['小挑战','用三个词夸对方，不能用“好看”。','说完换另一个人。'],
+    ['小挑战','对视 8 秒，谁先笑谁抽下一张。','笑了也算完成。'],
+    ['小挑战','给对方安排一个 1 分钟内能完成的小任务。','任务要温柔，不要为难人。'],
+    ['轻松题','选一个：散步、奶茶、电影、拍照，今天最想做哪个？','两个人都说理由。'],
+    ['轻松题','如果现在有一张任意门，你最想去哪里待 30 分钟？','可以是现实地点，也可以是想象地点。'],
+    ['轻松题','说出一个你们下次可以一起尝试的小计划。','越容易实现越好。'],
+    ['轻松题','用一种天气形容今天和对方相处的感觉。','例如晴天、小雨、微风。']
+  ];
+  const softCards = drawCards.filter(x => x[0] !== '真心话');
+  function setDraw(card){ $('#drawType').textContent=card[0]; $('#drawText').textContent=card[1]; $('#drawNote').textContent=card[2]; }
+  $('#drawBtn').addEventListener('click',()=>setDraw(pick(drawCards)));
+  $('#skipBtn').addEventListener('click',()=>setDraw(pick(softCards)));
+
+  const matchQs = [
+    ['更适合今天的安排是？','A 安静待着','B 出门走走'],
+    ['更想收到哪种小惊喜？','A 一句认真夸奖','B 一个小礼物'],
+    ['点饮料时更常选？','A 稳定老味道','B 新品试试看'],
+    ['遇到烦心事更需要？','A 先被安慰','B 一起想办法'],
+    ['拍照更喜欢？','A 自然抓拍','B 摆好姿势'],
+    ['周末更像哪一种？','A 慢慢充电','B 安排满满'],
+    ['聊天时更喜欢？','A 讲细节','B 讲重点'],
+    ['今天更想要？','A 一点甜的','B 一点好玩的'],
+    ['如果只能选一个背景音？','A 雨声','B 音乐'],
+    ['更喜欢哪种陪伴？','A 各做各的但在一起','B 一起做同一件事']
+  ];
+  let matchScore = Number(localStorage.getItem('matchScore')||0);
+  function updateMatchScore(){ $('#matchScore').textContent='默契值 '+matchScore; localStorage.setItem('matchScore', matchScore); }
+  updateMatchScore();
+  function nextMatch(){ const q=pick(matchQs); $('#matchQuestion').textContent=q[0]; $('#matchChoices').innerHTML=`<button class="chip">${q[1]}</button><button class="chip">${q[2]}</button>`; $('#matchHint').textContent='先各自在心里选，再 3、2、1 一起揭晓。'; }
+  $('#matchNext').addEventListener('click',nextMatch);
+  $('#matchGood').addEventListener('click',()=>{ matchScore++; updateMatchScore(); say('默契值 +1'); });
+
+  let syncState='idle', syncStartTime=0, firstTap=0, timer=null;
+  let best = localStorage.getItem('bestSync');
+  function updateBest(){ $('#bestSync').textContent = best ? ('最佳：'+best+' 毫秒') : '最佳：暂无'; }
+  updateBest();
+  function resetSync(){ syncState='idle'; firstTap=0; clearTimeout(timer); $('#syncTitle').textContent='准备好后，把手机放在两人中间'; $('#tapZone').textContent='开始'; $('#syncNote').textContent='开始后会随机倒计时。看到“点！”时，两个人轮流快速点击下方区域。'; $('#syncBar').style.width='0%'; }
+  $('#syncStart').addEventListener('click',()=>{
+    resetSync(); syncState='waiting'; $('#syncTitle').textContent='盯住这里，不要提前点'; $('#tapZone').textContent='等待…'; $('#syncNote').textContent='看到“点！”后，第一个人先点，第二个人马上接着点。';
+    const delay = 1200 + Math.random()*2200;
+    timer=setTimeout(()=>{ syncState='go'; syncStartTime=Date.now(); $('#syncTitle').textContent='点！'; $('#tapZone').textContent='点这里'; $('#syncBar').style.width='100%'; }, delay);
+  });
+  $('#syncReset').addEventListener('click',resetSync);
+  $('#tapZone').addEventListener('click',()=>{
+    if(syncState==='idle'){ $('#syncStart').click(); return; }
+    if(syncState==='waiting'){ resetSync(); say('提前点啦，重新来'); return; }
+    if(syncState==='go'){
+      if(!firstTap){ firstTap=Date.now(); $('#tapZone').textContent='第二个人点！'; $('#syncNote').textContent='第一个已完成，第二个人快点。'; }
+      else { const diff=Date.now()-firstTap; $('#syncTitle').textContent = diff <= 180 ? '很同频！' : diff <= 420 ? '还不错！' : '再来一次会更准'; $('#tapZone').textContent=diff+' 毫秒'; $('#syncNote').textContent='两次点击间隔越小，说明越同步。'; syncState='done'; if(!best || diff < Number(best)){ best=String(diff); localStorage.setItem('bestSync',best); updateBest(); say('刷新最佳纪录'); } }
+    }
+  });
+
+  const goals = [
+    '一起拍一张今天的合照，不用发朋友圈。',
+    '一起散步 10 分钟，只聊轻松的事。',
+    '各自推荐一首歌，互相听 30 秒。',
+    '一起选一个下次想吃的小店。',
+    '互相说一句今天最想听到的话。',
+    '一起做一个“明天也能完成”的小约定。',
+    '互相给今天的心情打分，并说原因。',
+    '一起找一张表情包，代表此刻心情。',
+    '用 1 分钟整理一个共同的小愿望清单。',
+    '一起安静待 3 分钟，谁也不用找话题。'
+  ];
+  $('#wheelBtn').addEventListener('click',()=>{ $('#wheelText').textContent='转动中…'; setTimeout(()=>{ $('#wheelText').textContent=pick(goals); $('#wheelNote').textContent='完成后可以点下面按钮记录一下。'; }, 450); });
+  $('#wheelDone').addEventListener('click',()=>say('已完成，今天加一颗星')); 
+  nextMatch();
+})();
+</script>
+</body>
+</html>
